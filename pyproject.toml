@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydbzengine"
+version = "0.1.0"
+authors = [
+    { name = "Memiiso Organization" },
+]
+description = "Python Debezium Embedded Engine"
+# readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["Debezium", "Replication", "CDC"]
+license = { text = "Apache License 2.0" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "pyjnius==1.6.1"
+]
+[project.optional-dependencies]
+dev = ["testcontainers>=4.9.1"]
+#[project.scripts]
+#debezium = "pydbzengine.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/memiiso/pydbzengine"
+Documentation = "https://github.com/memiiso/pydbzengine"
+Repository = "https://github.com/memiiso/pydbzengine"

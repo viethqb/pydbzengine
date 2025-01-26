@@ -1,6 +1,6 @@
 import unittest
 
-from pydbzengine import Properties, BaseJsonChangeConsumer, DebeziumJsonEngineBuilder
+from pydbzengine import Properties, BasePythonChangeHandler, DebeziumJsonEngine
 
 
 class TestDebeziumJsonEngine(unittest.TestCase):
@@ -14,4 +14,12 @@ class TestDebeziumJsonEngine(unittest.TestCase):
 
         with self.assertRaisesRegex(Exception,
                                     ".*Error.*while.*instantiating.*transformation.*router"):  # Wrong message
-            DebeziumJsonEngineBuilder().with_properties(props).with_consumer(BaseJsonChangeConsumer()).build()
+            DebeziumJsonEngine(properties=props, handler=BasePythonChangeHandler())
+
+        # test engine arguments validated
+        with self.assertRaisesRegex(Exception,
+                                    ".*Please provide debezium config.*"):  # Wrong message
+            DebeziumJsonEngine(properties=None, handler=BasePythonChangeHandler())
+        with self.assertRaisesRegex(Exception,
+                                    ".*Please provide handler.*"):  # Wrong message
+            DebeziumJsonEngine(properties=props, handler=None)

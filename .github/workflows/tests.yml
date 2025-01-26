@@ -1,0 +1,37 @@
+name: Build and Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/**'
+      - '.idea/**'
+      - '.run/**'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '.idea/**'
+      - '.run/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Build & Install & Test
+        run: |
+          python3 --version
+          pip install coverage pylint pytest setuptools
+          python3 -m compileall -f pydbzengine
+          pip install .[dev]
+          python3 -m coverage report -m ./pydbzengine/*.py
+          python3 -m coverage run --source=./tests/ -m unittest discover -s tests/
+#          python3 -m pylint pydbzengine

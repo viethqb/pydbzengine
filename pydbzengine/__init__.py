@@ -1,11 +1,20 @@
+import traceback
 from abc import ABC
 from pathlib import Path
 from typing import List
 
 ################# INIT ####################
 DEBEZIUM_JAVA_LIBS_DR = Path(__file__).parent.joinpath("debezium/libs/*").as_posix()
+CLASS_PATHS = [DEBEZIUM_JAVA_LIBS_DR]
+CONFIG_DIR = Path().cwd().joinpath('config')
+if CONFIG_DIR.is_dir() and CONFIG_DIR.exists():
+    print(f"Adding classpath: {CONFIG_DIR.as_posix()}")
+    CLASS_PATHS.append(CONFIG_DIR.as_posix())
+
 import jnius_config
-jnius_config.add_classpath(DEBEZIUM_JAVA_LIBS_DR)
+
+# jnius_config.add_options('-Dlog4j.debug')
+jnius_config.add_classpath(*CLASS_PATHS)
 from jnius import autoclass
 from jnius import PythonJavaClass, java_method, JavaMethod
 
@@ -15,12 +24,9 @@ DebeziumEngine = autoclass('io.debezium.engine.DebeziumEngine')
 DebeziumEngineBuilder = autoclass('io.debezium.engine.DebeziumEngine$Builder')
 DebeziumEngineBuilder.notifying = JavaMethod(
     '(Lio/debezium/engine/DebeziumEngine$ChangeConsumer;)Lio/debezium/engine/DebeziumEngine$Builder;')
-
-
-# AsyncEmbeddedEngine = autoclass('io.debezium.embedded.async.AsyncEmbeddedEngine')
-# KeyValueChangeEventFormat = autoclass('io.debezium.engine.format.KeyValueChangeEventFormat')
-# ChangeConsumer = autoclass('io.debezium.engine.DebeziumEngine$ChangeConsumer')
-# AsyncEngineBuilder = autoclass('io.debezium.embedded.async.AsyncEmbeddedEngine$AsyncEngineBuilder')
+StopEngineException = autoclass('io.debezium.engine.StopEngineException')
+JavaLangSystem = autoclass('java.lang.System')
+JavaLangThread = autoclass('java.lang.Thread')
 
 
 class RecordCommitter(ABC):
@@ -54,40 +60,65 @@ class ChangeEvent(ABC):
     def partition(self) -> int:
         pass
 
+
 class EngineFormat:
     JSON = autoclass('io.debezium.engine.format.Json')
 
-class BaseJsonChangeConsumer(PythonJavaClass):
+
+class BasePythonChangeHandler(ABC):
+
+    def handleJsonBatch(self, records: List[ChangeEvent], committer: RecordCommitter):
+        raise NotImplementedError(
+            "Not implemented, Please implement BasePyhonChangeConsumer and use it to consume events!")
+
+
+class PythonChangeConsumer(PythonJavaClass):
     __javainterfaces__ = ['io/debezium/engine/DebeziumEngine$ChangeConsumer']
+
+    def __init__(self):
+        self.handler: BasePythonChangeHandler
 
     @java_method('(Ljava/util/List;Lio/debezium/engine/DebeziumEngine$RecordCommitter;)V')
     def handleBatch(self, records: List[ChangeEvent], committer: RecordCommitter):
-        print(f"RECEIVED ARGUMENTS: {type(records)} {type(committer)}")
-        # print(f"RECEIVED VALS: {records} {committer}")
-        print(f"RECEIVED VALS: {type(records[0].value())}")
-        print(f"RECEIVED VALS: {type(records[0].key())}")
-        print(f"RECEIVED VALS: {(records[0].destination())}")
-        print(f"RECEIVED VALS: {(records[0].value())}")
-        print(f"RECEIVED VALS: {(records[0].key())}")
+        try:
+            self.handler.handleJsonBatch(records=records, committer=committer)
+        except Exception as e:
+            print("ERROR: failed to consume events in python")
+            print(str(e))
+            print(traceback.format_exc())
+            JavaLangThread.currentThread().interrupt()
 
-class DebeziumJsonEngineBuilder:
-    def __init__(self):
-        self.builder = DebeziumEngine.create(EngineFormat.JSON)
-        self.properties: Properties = None
-        self.consumer: BaseJsonChangeConsumer = None
-        print(f"builder: {type(self.builder)}")
+    @java_method('()Z')
+    def supportsTombstoneEvents(self):
+        return True
 
-    def with_properties(self, properties: Properties):
-        self.properties = properties
-        return self
+    def set_change_handler(self, handler: BasePythonChangeHandler):
+        self.handler = handler
 
-    def with_consumer(self, consumer: BaseJsonChangeConsumer):
-        self.consumer = consumer
-        return self
+    def interrupt(self):
+        print("Interrupt called in python consumer")
+        JavaLangThread.currentThread().interrupt()
 
-    def build(self) -> DebeziumEngine:
+
+class DebeziumJsonEngine:
+    def __init__(self, properties: Properties, handler: BasePythonChangeHandler):
+        self.properties: Properties = properties
+
         if self.properties is None:
-            raise ValueError("Please provide configuration properties!")
-        if self.consumer is None:
-            raise ValueError("Please provide consumer class, A python class extending BaseJsonChangeConsumer!")
-        return self.builder.using(self.properties).notifying(BaseJsonChangeConsumer()).build()
+            raise ValueError("Please provide debezium config properties!")
+        if handler is None:
+            raise ValueError("Please provide handler class, see example class `pydbzengine.BaseJsonChangeConsumer`!")
+
+        self.consumer = PythonChangeConsumer()
+        self.consumer.set_change_handler(handler)
+
+        self.engine: DebeziumEngine = (DebeziumEngine.create(EngineFormat.JSON)
+                                       .using(self.properties)
+                                       .notifying(self.consumer)
+                                       .build())
+
+    def run(self):
+        self.engine.run()
+
+    def interrupt(self):
+        self.consumer.interrupt()

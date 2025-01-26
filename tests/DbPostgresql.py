@@ -5,13 +5,14 @@ from testcontainers.postgres import PostgresContainer
 
 def _connect(self) -> None:
     wait_for_logs(self, ".*database system is ready to accept connections.*")
+    wait_for_logs(self, ".*PostgreSQL init process complete.*")
 
 
 class DbPostgresql:
     POSTGRES_USER = "postgres"
     POSTGRES_PASSWORD = "postgres"
     POSTGRES_DBNAME = "postgres"
-    POSTGRES_IMAGE = "debezium/example-postgres:2.5"
+    POSTGRES_IMAGE = "debezium/example-postgres:3.0.0.Final"
     POSTGRES_HOST = "localhost"
     POSTGRES_PORT_DEFAULT = 5432
     CONTAINER: PostgresContainer = (PostgresContainer(image=POSTGRES_IMAGE,

@@ -30,7 +30,7 @@ from pydbzengine import Properties, DebeziumJsonEngine
 
 class TestChangeHandler(BasePythonChangeHandler):
     """
-    An example implementation of a handler class, where we need to process the data received from java.
+    An example implementation of a handler class, where the data received from java is processed.
     """
 
     def handleJsonBatch(self, records: List[ChangeEvent], committer: RecordCommitter):

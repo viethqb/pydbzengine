@@ -110,7 +110,8 @@ class DebeziumJsonEngine:
             raise ValueError("Please provide handler class, see example class `pydbzengine.BaseJsonChangeConsumer`!")
 
         self.consumer = PythonChangeConsumer()
-        self.consumer.set_change_handler(handler)
+        self._handler = handler
+        self.consumer.set_change_handler(self._handler)
 
         self.engine: DebeziumEngine = (DebeziumEngine.create(EngineFormat.JSON)
                                        .using(self.properties)

@@ -77,7 +77,12 @@ schemas.enable = false
 ......further debezium logs.........
 
 2025-01-28 17:59:11,909 [INFO] [pool-4-thread-1] io.debezium.relational.RelationalSnapshotChangeEventSource (RelationalSnapshotChangeEventSource.java:660) - Finished exporting 9 records for table 'inventory.products' (4 of 5 tables); total duration '00:00:00.003' 
-2025-01-28 17:59:11,909 [INFO] [pool-4-thread-1] io.debezium.relational.RelationalSnapshotChangeEventSource (RelationalSnapshotChangeEventSource.java:614) - Exporting data from table 'inventory.products_on_hand' (5 of 5 tables) Received 2 records Record 1 table: testc.inventory.orders Record 1 key: {"id":10004} Record 1 value: {"id":10004,"order_date":16852,"purchaser":1003,"quantity":1,"product_id":107,"__deleted":"false","__op":"r","__table":"orders","__source_ts_ms":1738083551906,"__ts_ms":1738083551905}
+2025-01-28 17:59:11,909 [INFO] [pool-4-thread-1] io.debezium.relational.RelationalSnapshotChangeEventSource (RelationalSnapshotChangeEventSource.java:614) - Exporting data from table 'inventory.products_on_hand' (5 of 5 tables)
+
+Received 2 records
+Record 1 table: testc.inventory.orders
+Record 1 key: {"id":10004}
+Record 1 value: {"id":10004,"order_date":16852,"purchaser":1003,"quantity":1,"product_id":107,"__deleted":"false","__op":"r","__table":"orders","__source_ts_ms":1738083551906,"__ts_ms":1738083551905}
 
 --------------------------------------
 Received 2 records

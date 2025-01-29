@@ -1,41 +1,16 @@
-import logging
 import os
 import unittest
 from pathlib import Path
-from typing import List
 
 from DbPostgresql import DbPostgresql
-from TestUtil import TestUtil
-from pydbzengine import ChangeEvent, RecordCommitter, BasePythonChangeHandler
-from pydbzengine import Properties, DebeziumJsonEngine
+from pydbzengine import Properties
 
 
-class TestChangeHandler(BasePythonChangeHandler):
-    """
-    An example implementation of a handler class, where we need to process the data received from java.
-    Used for testing only.
-    """
-    LOGGER_NAME = "printHandler"
-
-    def handleJsonBatch(self, records: List[ChangeEvent], committer: RecordCommitter):
-        logging.getLogger(self.LOGGER_NAME).info(f"Received {len(records)} records")
-        print(f"Received {len(records)} records")
-        print(f"Record 1 table: {records[0].destination()}")
-        print(f"Record 1 key: {records[0].key()}")
-        print(f"Record 1 value: {records[0].value()}")
-        print("--------------------------------------")
-        for r in records:
-            committer.markProcessed(r)
-        committer.markBatchFinished()
-
-
-class TestDebeziumJsonEngine(unittest.TestCase):
+class BasePostgresqlTest(unittest.TestCase):
     OFFSET_FILE = Path(__file__).parent.joinpath('postgresql-offsets.dat')
     SOURCEDB = DbPostgresql()
 
     def get_props(self):
-        if self.OFFSET_FILE.exists():
-            os.remove(self.OFFSET_FILE)
         props = Properties()
         props.setProperty("name", "engine")
         props.setProperty("snapshot.mode", "initial_only")
@@ -85,15 +60,3 @@ class TestDebeziumJsonEngine(unittest.TestCase):
             cls.SOURCEDB.stop()
         except:
             pass
-
-    def test_consuming(self):
-        props = self.get_props()
-        print(os.getcwd())
-
-        with self.assertLogs(TestChangeHandler.LOGGER_NAME, level='INFO') as cm:
-            # run async then interrupt after timeout!
-            engine = DebeziumJsonEngine(properties=props, handler=TestChangeHandler())
-            TestUtil.run_engine_async(engine=engine)
-
-        print(str(cm.output))
-        self.assertRegex(text=str(cm.output), expected_regex='.*Received.*records.*')

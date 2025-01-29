@@ -39,8 +39,8 @@ class TestChangeHandler(BasePythonChangeHandler):
         print(f"Record 1 key: {records[0].key()}")
         print(f"Record 1 value: {records[0].value()}")
         print("--------------------------------------")
-        # @TODO your code goes here
-        # @TODO process the data, for-example read it into pandas and save to destination etc.
+        # @NOTE ..... your code goes here .....
+        # @NOTE ..... process the data, for-example read it into pandas and save to destination etc. .....
         for r in records:
             committer.markProcessed(r)
         committer.markBatchFinished()
@@ -50,10 +50,11 @@ if __name__ == '__main__':
     props = Properties()
     props.setProperty("name", "engine")
     props.setProperty("snapshot.mode", "initial_only")
-    # ..... add further Debezium config properties
+    # ..... add further Debezium config properties .....
 
-    # pass the config and your handler class to the DebeziumJsonEngine
+    # pass the config and then handler class we created above to the DebeziumJsonEngine
     engine = DebeziumJsonEngine(properties=props, handler=TestChangeHandler())
+    # start consuming the event
     engine.run()
 ```
 

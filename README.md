@@ -3,7 +3,7 @@
 [![Create Pypi Release](https://github.com/memiiso/pydbzengine/actions/workflows/release.yml/badge.svg)](https://github.com/memiiso/pydbzengine/actions/workflows/release.yml)
 # pydbzengine
 
-A Python module to use [debezium](https://debezium.io/) in python. Consume Database CDC events using python.
+A Python module to use [Debezium Engine](https://debezium.io/) in python. Consume Database CDC events using python.
 
 Java integration is using [Pyjnius](https://pyjnius.readthedocs.io/en/latest/), It is a Python library for accessing
 Java classes

@@ -8,7 +8,7 @@ packages = ["pydbzengine"]
 
 [project]
 name = "pydbzengine"
-version = "3.0.7.0"
+version = "3.0.7.1"
 authors = [
     { name = "Memiiso Organization" },
 ]

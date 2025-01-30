@@ -6,7 +6,7 @@ import duckdb
 from base_postgresql_test import BasePostgresqlTest
 from pydbzengine import DebeziumJsonEngine
 from pydbzengine.debeziumdlt import DltChangeHandler
-from testing_utils import TestingUtils
+from pydbzengine.helper import Utils
 
 
 class TestDebeziumJsonEngine(BasePostgresqlTest):
@@ -20,6 +20,8 @@ class TestDebeziumJsonEngine(BasePostgresqlTest):
     def test_dlt_consuming(self):
         # get debezium engine configuration Properties
         props = self.debezium_engine_props()
+        props.setProperty("database.server.name", "testdlt")
+        props.setProperty("database.server.id", "2345")
         # create dlt pipeline to consume events to duckdb
         dlt_pipeline = dlt.pipeline(
             pipeline_name="dbz_cdc_events",
@@ -32,7 +34,7 @@ class TestDebeziumJsonEngine(BasePostgresqlTest):
             # give the config and the handler class to the DebeziumJsonEngine
             engine = DebeziumJsonEngine(properties=props, handler=handler)
             # run async then interrupt after timeout time to test the result!
-            TestingUtils.run_engine_async(engine=engine, timeout_sec=120)
+            Utils.run_engine_async(engine=engine, timeout_sec=120)
 
         self.assertRegex(text=str(cm.output), expected_regex='.*Consumed.*records.*')
         # print the data ===========================

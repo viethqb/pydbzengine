@@ -10,6 +10,7 @@ Java classes
 
 ## Installation
 
+Python+Java integration requires a Java Development Kit (JDK). Ensure a JDK is installed on your operating system.
 install:
 
 ```shell
